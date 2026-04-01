@@ -11,6 +11,9 @@ pipeline {
             }
             steps {
                 sh '''
+                    echo "Cleaning old workspace..."
+                    rm -rf node_modules build
+
                     echo "Build Stage"
                     echo "Current file directory:"
                     ls -la
