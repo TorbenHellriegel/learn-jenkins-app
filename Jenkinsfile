@@ -5,13 +5,13 @@ pipeline {
         stage('Build') {
             agent {
                 docker {
-                    image 'node:20-alpine'
+                    image 'node:23-alpine'
                     reuseNode true
                 }
             }
             steps {
                 sh '''
-                    echo "Cleaning old workspace..."
+                    echo "Cleaning old workspace:"
                     rm -rf node_modules build
 
                     echo "Build Stage"
@@ -34,7 +34,7 @@ pipeline {
         stage('Test') {
             agent {
                 docker {
-                    image 'node:20-alpine'
+                    image 'node:23-alpine'
                     reuseNode true
                 }
             }
