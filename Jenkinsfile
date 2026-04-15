@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     stages {
+        // Comment Build Stage
         stage('Build') {
             agent {
                 docker {
@@ -9,8 +10,12 @@ pipeline {
                     reuseNode true
                 }
             }
+            /*
+            do steps
+            */
             steps {
                 sh '''
+                    #this will be ignored in shell
                     echo "Cleaning old workspace:"
                     rm -rf node_modules build
 
@@ -47,7 +52,7 @@ pipeline {
             }
         }
     }
-    
+
     post{
         always{
             junit 'test-results/junit.xml'
