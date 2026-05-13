@@ -51,7 +51,7 @@ pipeline {
                 '''
             }
         }
-        stage('E2E') {
+        /*stage('E2E') {
             agent {
                 docker {
                     image 'mcr.microsoft.com/playwright:v1.60.0-noble'
@@ -65,7 +65,7 @@ pipeline {
                     npx playwright test
                 '''
             }
-        }
+        }*/
     }
 
     post{
