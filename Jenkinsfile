@@ -3,17 +3,17 @@ pipeline {
 
     stages {
         // Comment Build Stage
-        stage('Build') {
+        /*stage('Build') {
             agent {
                 docker {
                     image 'node:18-alpine'
                     reuseNode true
                 }
-            }
+            }*/
             /*
             do steps
             */
-            steps {
+            /*steps {
                 sh '''
                     #this will be ignored in shell
                     echo "Cleaning old workspace:"
@@ -35,7 +35,7 @@ pipeline {
                     ls -la
                 '''
             }
-        }
+        }*/
         stage('Test') {
             agent {
                 docker {
