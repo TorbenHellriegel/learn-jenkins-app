@@ -27,9 +27,11 @@ pipeline {
                     node --version
                     npm --version
 
-                    echo "Executing build:"
+                    echo "Installing:"
                     npm ci
                     npm install serve
+
+                    echo "Executing build:"
                     npm run build
 
                     echo "Final file directory:"
