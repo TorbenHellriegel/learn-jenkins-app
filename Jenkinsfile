@@ -29,6 +29,7 @@ pipeline {
 
                     echo "Executing build:"
                     npm ci
+                    npm install serve
                     npm run build
 
                     echo "Final file directory:"
@@ -60,7 +61,7 @@ pipeline {
             }
             steps {
                 sh '''
-                    npm install serve
+                    #npm install serve
                     node_modules/.bin/serve -s build &
                     sleep 10
                     npx playwright test --reporter=html
