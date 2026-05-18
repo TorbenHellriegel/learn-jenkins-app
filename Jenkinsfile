@@ -3,17 +3,17 @@ pipeline {
 
     stages {
         // Comment Build Stage
-        /*stage('Build') {
+        stage('Build') {
             agent {
                 docker {
                     image 'node:18-alpine'
                     reuseNode true
                 }
-            }*/
+            }
             /*
             do steps
             */
-            /*steps {
+            steps {
                 sh '''
                     #this will be ignored in shell
                     echo "Cleaning old workspace:"
@@ -30,6 +30,7 @@ pipeline {
                     echo "Installing:"
                     npm ci
                     npm install serve
+                    npm install netlify-cli@20.1.1
 
                     echo "Executing build:"
                     npm run build
@@ -38,7 +39,7 @@ pipeline {
                     ls -la
                 '''
             }
-        }*/
+        }
         stage('Run Tests') {
             parallel {
                 stage('Unit Test') {
@@ -93,7 +94,6 @@ pipeline {
             }
             steps {
                 sh '''
-                    npm install netlify-cli@20.1.1
                     node_modules/.bin/netlify --version
                 '''
             }
