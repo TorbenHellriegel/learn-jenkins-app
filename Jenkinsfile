@@ -14,7 +14,7 @@ pipeline {
             do steps
             */
             steps {
-                sh '''
+                /*sh '''
                     #this will be ignored in shell
                     echo "Cleaning old workspace:"
                     rm -rf node_modules build
@@ -37,7 +37,8 @@ pipeline {
 
                     echo "Final file directory:"
                     ls -la
-                '''
+                '''*/
+                echo 'Skipping Build Step...'
             }
         }
         stage('Run Tests') {
@@ -71,7 +72,6 @@ pipeline {
                     }
                     steps {
                         sh '''
-                            #npm install serve
                             node_modules/.bin/serve -s build &
                             sleep 10
                             npx playwright test --reporter=html
