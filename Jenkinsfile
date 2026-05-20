@@ -133,13 +133,13 @@ pipeline {
             }
         }
 
-        stage('Approval') {
+        /*stage('Approval') {
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
                     input 'Ready to Deploy?'
                 }
             }
-        }
+        }*/
 
         stage('Deploy Prod and E2E Test') {
             agent {
