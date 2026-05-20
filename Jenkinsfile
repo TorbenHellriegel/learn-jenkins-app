@@ -4,6 +4,7 @@ pipeline {
     environment {
         NETLIFY_SITE_ID = '46bdd434-0bca-4499-af30-292d9f866a04'
         NETLIFY_AUTH_TOKEN = credentials('netlify-token')
+        REACT_APP_VERSION = "1.0.$BUILD_ID"
     }
 
     stages {
@@ -45,7 +46,7 @@ pipeline {
                 echo 'Skipping Build Step...'
             }
         }
-        
+
         stage('Run Tests') {
             parallel {
                 stage('Unit Test') {
