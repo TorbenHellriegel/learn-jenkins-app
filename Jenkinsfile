@@ -45,6 +45,7 @@ pipeline {
                 echo 'Skipping Build Step...'
             }
         }
+        
         stage('Run Tests') {
             parallel {
                 stage('Unit Test') {
@@ -89,6 +90,7 @@ pipeline {
                 }
             }
         }
+
         stage('Deploy Staging') {
             agent {
                 docker {
@@ -108,6 +110,7 @@ pipeline {
                 }
             }
         }
+
         stage('Staging E2E Test') {
             agent {
                 docker {
@@ -129,6 +132,7 @@ pipeline {
                 }
             }
         }
+
         stage('Approval') {
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
@@ -136,23 +140,8 @@ pipeline {
                 }
             }
         }
-        stage('Deploy Prod') {
-            agent {
-                docker {
-                    image 'node:18-alpine'
-                    reuseNode true
-                }
-            }
-            steps {
-                sh '''
-                    node_modules/.bin/netlify --version
-                    echo "Deploying to Production, Site ID: $NETLIFY_SITE_ID"
-                    node_modules/.bin/netlify status
-                    node_modules/.bin/netlify deploy --dir=build --prod
-                '''
-            }
-        }
-        stage('Prod E2E Test') {
+
+        stage('Deploy Prod and E2E Test') {
             agent {
                 docker {
                     image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
@@ -164,6 +153,10 @@ pipeline {
             }
             steps {
                 sh '''
+                    node_modules/.bin/netlify --version
+                    echo "Deploying to Production, Site ID: $NETLIFY_SITE_ID"
+                    node_modules/.bin/netlify status
+                    node_modules/.bin/netlify deploy --dir=build --prod
                     npx playwright test --reporter=html
                 '''
             }
@@ -174,6 +167,7 @@ pipeline {
             }
         }
     }
+
     /*post{
         always{
             junit 'jtest-results/junit.xml'
