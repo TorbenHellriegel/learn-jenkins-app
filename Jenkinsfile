@@ -19,7 +19,7 @@ pipeline {
             do steps
             */
             steps {
-                /*sh '''
+                sh '''
                     #this will be ignored in shell
                     echo "Cleaning old workspace:"
                     rm -rf node_modules build
@@ -34,15 +34,14 @@ pipeline {
 
                     echo "Installing:"
                     npm ci
-                    npm install serve
-                    npm install netlify-cli@20.1.1
+                    npm install serve netlify-cli@20.1.1 node-jq
 
                     echo "Executing build:"
                     npm run build
 
                     echo "Final file directory:"
                     ls -la
-                '''*/
+                '''
                 echo 'Skipping Build Step...'
             }
         }
@@ -102,13 +101,37 @@ pipeline {
                     node_modules/.bin/netlify --version
                     echo "Deploying to Staging, Site ID: $NETLIFY_SITE_ID"
                     node_modules/.bin/netlify status
-                    node_modules/.bin/netlify deploy --dir=build
+                    node_modules/.bin/netlify deploy --dir=build --json > staging-output.json
                 '''
+                script {
+                    env.STAGING_URL = sh(script: "node_modules/.bin/node-jq -r '.deploy_url' staging-output.json", returnStdout: true)
+                }
+            }
+        }
+        stage('Staging E2E Test') {
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                    reuseNode true
+                }
+            }
+            environment {
+                CI_ENVIRONMENT_URL = "$env.STAGING_URL"
+            }
+            steps {
+                sh '''
+                    npx playwright test --reporter=html
+                '''
+            }
+            post{
+                always{
+                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright HTML Report Stage', reportTitles: '', useWrapperFileDirectly: true])
+                }
             }
         }
         stage('Approval') {
             steps {
-                timeout(time: 1, unit: 'MINUTES') {
+                timeout(time: 5, unit: 'MINUTES') {
                     input 'Ready to Deploy?'
                 }
             }
