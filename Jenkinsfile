@@ -24,6 +24,8 @@ pipeline {
                     # this will be ignored in shell
                     echo "Cleaning old workspace:"
                     rm -rf node_modules build
+                    rm -f package-lock.json
+                    npm cache clean --force
 
                     echo "Build Stage"
                     echo "Current file directory:"
