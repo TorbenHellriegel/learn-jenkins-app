@@ -7,6 +7,7 @@ pipeline {
         REACT_APP_VERSION = "1.0.$BUILD_ID"
     }
 
+    stages {
         // Comment Build Stage
         stage('Build') {
             agent {
