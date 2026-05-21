@@ -24,7 +24,6 @@ pipeline {
                     # this will be ignored in shell
                     echo "Cleaning old workspace:"
                     rm -rf node_modules build
-                    npm cache clean
 
                     echo "Build Stage"
                     echo "Current file directory:"
