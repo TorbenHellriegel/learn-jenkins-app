@@ -8,7 +8,29 @@ pipeline {
     }
 
     stages {
-        // Comment Build Stage
+
+        stage('AWS') {
+            agent {
+                docker {
+                    image 'amazon/aws-cli' //to access aws we need a docker image with the aws-cli. not giving a specific versin will default this to latest
+                    args "--entrypoint=''" //the entrypoint needs to be set for the aws-cli to work properly
+                }
+            }
+            environment {
+                AWS_S3_BUCKET = 'learn-jenkins-20260601' //the name of the bucket in aws (needs to be created beforehand with an aws account)
+            }
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) { //the credentials are saved as username and password in the jenkins web-interface beforehand. the withCredentials command comes from the aws-cli
+                    //in the sh we create an example file and send it to the bucket in aws
+                    sh '''
+                        aws --version
+                        echo "Hello S3" > index.html
+                        aws s3 cp index.html s3://$AWS_S3_BUCKET/index.html
+                    '''
+                }
+            }
+        }
+
         stage('Build') {
             agent {
                 docker {
