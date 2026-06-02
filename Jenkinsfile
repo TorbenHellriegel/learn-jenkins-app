@@ -9,33 +9,11 @@ pipeline {
 
     stages {
 
-        stage('AWS') {
-            agent {
-                docker {
-                    image 'amazon/aws-cli' //to access aws we need a docker image with the aws-cli. not giving a specific versin will default this to latest
-                    args "--entrypoint=''" //the entrypoint needs to be set for the aws-cli to work properly
-                }
-            }
-            environment {
-                AWS_S3_BUCKET = 'learn-jenkins-20260601' //the name of the bucket in aws (needs to be created beforehand with an aws account)
-            }
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) { //the credentials are saved as username and password in the jenkins web-interface beforehand. the withCredentials command comes from the aws-cli
-                    //in the sh we create an example file and send it to the bucket in aws
-                    sh '''
-                        aws --version
-                        echo "Hello S3" > index.html
-                        aws s3 cp index.html s3://$AWS_S3_BUCKET/index.html
-                    '''
-                }
-            }
-        }
-
         stage('Build') {
             agent {
                 docker {
                     image 'node:18-alpine' //alpine is a smaller compact docker container for npm
-                    reuseNode true //this is important so that the image does not need to be redownloaded and so that the workspace can be reused by other stages. otherwise a file created here could not be accessed by other stages
+                    reuseNode true //this is important so that the workspace can be reused by other stages. otherwise a file created here could not be accessed by other stages
                 }
             }
             /*
@@ -197,8 +175,30 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy AWS') {
+            agent {
+                docker {
+                    image 'amazon/aws-cli' //to access aws we need a docker image with the aws-cli. not giving a specific versin will default this to latest
+                    reuseNode true
+                    args "--entrypoint=''" //the entrypoint needs to be set for the aws-cli to work properly
+                }
+            }
+            environment {
+                AWS_S3_BUCKET = 'learn-jenkins-20260601' //the name of the bucket in aws (needs to be created beforehand with an aws account)
+            }
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) { //the credentials are saved as username and password in the jenkins web-interface beforehand. the withCredentials command comes from the aws-cli
+                    //in the sh we create an example file and send it to the bucket in aws
+                    sh '''
+                        aws --version
+                        aws s3 sync build s3://$AWS_S3_BUCKET
+                    '''
+                }
+            }
+        }
     }
-    
+
     //this post "stage" is always executed after all the stages are done. it is no longer used here but remeins as a commt for future reference
     /*post{
         always{
