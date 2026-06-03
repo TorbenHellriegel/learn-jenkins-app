@@ -176,7 +176,7 @@ pipeline {
             }
         }
 
-        stage('Deploy AWS') {
+        /*stage('Deploy AWS') {
             agent {
                 docker {
                     image 'amazon/aws-cli' //to access aws we need a docker image with the aws-cli. not giving a specific versin will default this to latest
@@ -196,7 +196,7 @@ pipeline {
                     '''
                 }
             }
-        }
+        }*/
     }
 
     //this post "stage" is always executed after all the stages are done. it is no longer used here but remeins as a commt for future reference
