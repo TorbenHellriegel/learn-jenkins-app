@@ -176,27 +176,37 @@ pipeline {
             }
         }
 
-        /*stage('Deploy AWS') {
+        stage('Deploy AWS') {
             agent {
                 docker {
                     image 'amazon/aws-cli' //to access aws we need a docker image with the aws-cli. not giving a specific versin will default this to latest
                     reuseNode true
-                    args "--entrypoint=''" //the entrypoint needs to be set for the aws-cli to work properly
+                    args "-u root --entrypoint=''" //the entrypoint needs to be set for the aws-cli to work properly and the root user is needen to install jq later
                 }
             }
             environment {
                 AWS_S3_BUCKET = 'learn-jenkins-20260601' //the name of the bucket in aws (needs to be created beforehand with an aws account)
+                AWS_DEFAULT_REGION = 'us-east-1' //this is needed when using task definitions to set the region of the cluster
             }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) { //the credentials are saved as username and password in the jenkins web-interface beforehand. the withCredentials command comes from the aws-cli
                     //in the sh we create an example file and send it to the bucket in aws
-                    sh '''
+                    /*sh '''
                         aws --version
                         aws s3 sync build s3://$AWS_S3_BUCKET
+                    '''*/
+                    //in this sh we deploy our app with clusters and task definitions instead (see task definition below). the LearnJenkinsApp Cluster and Service names are set in the aws web interface. jq is needed to handle variables between the commands. at the end we wait for the service to be fully deployed
+                    sh '''
+                        aws --version
+                        yum install jq -y
+                        LATEST_TD_REVISION=$(aws ecs register-task-definition --cli-input-json file://aws/task-definition-prod.json | jq '.taskDefinition.revision')
+                        echo $LATEST_TD_REVISION
+                        aws ecs update-service --cluster LearnJenkinsApp-Cluster-Prod --service LearnJenkinsApp-Service-Prod --task-definition LearnJenkinsApp-TaskDefinition-Prod:$LATEST_TD_REVISION
+                        aws ecs wait services-stable --cluster LearnJenkinsApp-Cluster-Prod --services LearnJenkinsApp-Service-Prod
                     '''
                 }
             }
-        }*/
+        }
     }
 
     //this post "stage" is always executed after all the stages are done. it is no longer used here but remeins as a commt for future reference
