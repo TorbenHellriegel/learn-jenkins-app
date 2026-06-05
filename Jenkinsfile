@@ -187,6 +187,9 @@ pipeline {
             environment {
                 AWS_S3_BUCKET = 'learn-jenkins-20260601' //the name of the bucket in aws (needs to be created beforehand with an aws account)
                 AWS_DEFAULT_REGION = 'us-east-1' //this is needed when using task definitions to set the region of the cluster
+                AWS_ECS_CLUSTER = 'LearnJenkinsApp-Cluster-Prod' //self defines variables
+                AWS_ECS_SERVICE = 'LearnJenkinsApp-Service-Prod' //self defines variables
+                AWS_ECS_TASK = 'LearnJenkinsApp-TaskDefinition-Prod' //self defines variables
             }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) { //the credentials are saved as username and password in the jenkins web-interface beforehand. the withCredentials command comes from the aws-cli
@@ -201,8 +204,8 @@ pipeline {
                         yum install jq -y
                         LATEST_TD_REVISION=$(aws ecs register-task-definition --cli-input-json file://aws/task-definition-prod.json | jq '.taskDefinition.revision')
                         echo $LATEST_TD_REVISION
-                        aws ecs update-service --cluster LearnJenkinsApp-Cluster-Prod --service LearnJenkinsApp-Service-Prod --task-definition LearnJenkinsApp-TaskDefinition-Prod:$LATEST_TD_REVISION
-                        aws ecs wait services-stable --cluster LearnJenkinsApp-Cluster-Prod --services LearnJenkinsApp-Service-Prod
+                        aws ecs update-service --cluster $AWS_ECS_CLUSTER --service $AWS_ECS_SERVICE --task-definition $AWS_ECS_TASK:$LATEST_TD_REVISION
+                        aws ecs wait services-stable --cluster $AWS_ECS_CLUSTER --services $AWS_ECS_SERVICE
                     '''
                 }
             }
