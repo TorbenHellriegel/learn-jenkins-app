@@ -50,6 +50,12 @@ pipeline {
             }
         }
 
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t myJenkinsApp .'
+            }
+        }
+
         stage('Run Tests') {
             parallel { //this causes the steps defined within to be run in parrallel to save time. can only be done if there are no dependencies between them
                 stage('Unit Test') {
