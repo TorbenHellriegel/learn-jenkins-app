@@ -5,6 +5,8 @@ pipeline {
         NETLIFY_SITE_ID = '46bdd434-0bca-4499-af30-292d9f866a04' //this variable name must be set because netlify directly looks for this value
         NETLIFY_AUTH_TOKEN = credentials('netlify-token') //the credentials are set in the jenkins web-interface and can be accessed with credentials()
         REACT_APP_VERSION = "1.0.$BUILD_ID" //this is used in the App.js to automatically increment the app version with each deployment (the $BUILD_ID comes from Jenkins)
+        APP_NAME = 'myJenkinsApp'
+        AWS_DOCKER_REGISTRY = '9137237491.dkr.ecr.us-east-1.amazonaws.com' //this is the registry where we upload our created docker image
     }
 
     stages {
@@ -59,10 +61,14 @@ pipeline {
                 }
             }
             steps {
-                //in this sh we build the app with docker into a new docker image with our Dockerfile(see below)
-                sh '''
-                    docker build -t myJenkinsApp .
-                '''
+                withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) { //the credentials are saved as username and password in the jenkins web-interface beforehand. the withCredentials command comes from the aws-cli
+                    //in this sh we build the app with docker into a new docker image with our Dockerfile(see below). then we get a aws password, log in to our registry and finally push our docker image
+                    sh '''
+                        docker build -t $AWS_DOCKER_REGISTRY/$APP_NAME:$REACT_APP_VERSION .
+                        aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_DOCKER_REGISTRY
+                        docker push $AWS_DOCKER_REGISTRY/$APP_NAME:$REACT_APP_VERSION
+                    '''
+                }
             }
         }
 
