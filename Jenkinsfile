@@ -53,15 +53,14 @@ pipeline {
         stage('Build Docker Image') {
             agent {
                 docker {
-                    image 'amazon/aws-cli' //to access aws we need a docker image with the aws-cli. not giving a specific versin will default this to latest
+                    image 'my_aws_cli' //to access aws we need a docker image with the aws-cli. not giving a specific versin will default this to latest
                     reuseNode true
                     args "-u root -v /var/run/docker.sock:/var/run/docker.sock --entrypoint=''" //the entrypoint needs to be set for the aws-cli to work properly and the root user is needen to install jq later. the -v flag is needed to map the docker socket to our host to enable communication
                 }
             }
             steps {
-                //in this sh we first install docker because it is not originally in the amazon image and then we build the app with docker into a new docker image with our Dockerfile(see below)
+                //in this sh we build the app with docker into a new docker image with our Dockerfile(see below)
                 sh '''
-                    amazon-linux-extras install docker
                     docker build -t myJenkinsApp .
                 '''
             }
@@ -196,9 +195,9 @@ pipeline {
         stage('Deploy AWS') {
             agent {
                 docker {
-                    image 'amazon/aws-cli' //to access aws we need a docker image with the aws-cli. not giving a specific versin will default this to latest
+                    image 'my_aws_cli' //to access aws we need a docker image with the aws-cli. not giving a specific versin will default this to latest
                     reuseNode true
-                    args "-u root --entrypoint=''" //the entrypoint needs to be set for the aws-cli to work properly and the root user is needen to install jq later
+                    args "--entrypoint=''" //the entrypoint needs to be set for the aws-cli to work properly
                 }
             }
             environment {
@@ -218,7 +217,6 @@ pipeline {
                     //in this sh we deploy our app with clusters and task definitions instead (see task definition below). the LearnJenkinsApp Cluster and Service names are set in the aws web interface. jq is needed to handle variables between the commands. at the end we wait for the service to be fully deployed
                     sh '''
                         aws --version
-                        yum install jq -y
                         LATEST_TD_REVISION=$(aws ecs register-task-definition --cli-input-json file://aws/task-definition-prod.json | jq '.taskDefinition.revision')
                         echo $LATEST_TD_REVISION
                         aws ecs update-service --cluster $AWS_ECS_CLUSTER --service $AWS_ECS_SERVICE --task-definition $AWS_ECS_TASK:$LATEST_TD_REVISION
