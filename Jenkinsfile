@@ -51,8 +51,19 @@ pipeline {
         }
 
         stage('Build Docker Image') {
+            agent {
+                docker {
+                    image 'amazon/aws-cli' //to access aws we need a docker image with the aws-cli. not giving a specific versin will default this to latest
+                    reuseNode true
+                    args "-u root -v /var/run/docker.sock:/var/run/docker.sock --entrypoint=''" //the entrypoint needs to be set for the aws-cli to work properly and the root user is needen to install jq later. the -v flag is needed to map the docker socket to our host to enable communication
+                }
+            }
             steps {
-                sh 'docker build -t myJenkinsApp .'
+                //in this sh we first install docker because it is not originally in the amazon image and then we build the app with docker into a new docker image with our Dockerfile(see below)
+                sh '''
+                    amazon-linux-extras install docker
+                    docker build -t myJenkinsApp .
+                '''
             }
         }
 
